@@ -77,7 +77,8 @@ body{
 /* STATS */
 .stats{display:flex;gap:20px}
 .stat{
-  width:140px;height:140px;
+  width:180px;
+  height:140px;
   background:#000;
   border:1px solid #444;
   border-radius:18px;
@@ -86,7 +87,13 @@ body{
   justify-content:center;
   align-items:center;
 }
-.stat-value{font-size:42px;font-weight:800}
+.stat-value{
+  font-size:18px;
+  font-weight:800;
+  text-align:center;
+  line-height:1.3;
+  white-space:normal;
+}
 .stat-label{font-size:13px;color:var(--text-dim)}
 
 /* TIMER */
@@ -172,7 +179,7 @@ button{
         <div class="stat-label">Total Tasks</div>
       </div>
       <div class="stat">
-        <div class="stat-value" id="totalTime">00:00</div>
+        <div class="stat-value" id="totalTime">0 min 0 sec</div>
         <div class="stat-label">Total Time</div>
       </div>
     </div>
@@ -183,7 +190,9 @@ button{
       </div>
     </div>
 
-    <input id="taskName" placeholder="Task name">
+    <input id="taskName" list="taskList" placeholder="Task name">
+    <datalist id="taskList"></datalist>
+
     <input id="timeInput" type="number" placeholder="Time in minutes">
 
     <div class="button-row">
@@ -194,7 +203,6 @@ button{
 
     <div class="button-row">
       <button class="submit" onclick="submitTask()">+1 Submit</button>
-      <button class="backup" onclick="submitTime()">⏱ Submit Time</button>
       <button class="undo" onclick="undoTask()">−1 Undo</button>
     </div>
 
@@ -227,6 +235,55 @@ let soundOn=true;
 const alarm=document.getElementById("alarm");
 const tasks={};
 
+/* ===== TASK AHT ===== */
+const TASK_AHT={
+  "251015-stationary-camera-transforms":15,
+  "251102-image-facts":20,
+  "251106-screenshot-code":5,
+  "250917-ig-entity-tagging":30,
+  "251107-image-edit-region":15,
+  "250911-character-consistency":3,
+  "251111-share-lm-chats":5,
+  "250915-asr-transcript-accuracy":2,
+  "251030-audio-transcript":8,
+  "250907-ui-images":10,
+  "250911-scene-expansion":3,
+  "250915-product-image-pairs":5,
+  "251112-hard-grounding-samples":7,
+  "251112-text-elo-h2h":15,
+  "251110-gauge-annotation":2,
+  "251103-qr-code-extraction":2,
+  "251014-ig-entity-tagging-videos":10,
+  "251119-scripted-call-av-solo-client":10,
+  "251121-aspect-ratio-cropping":5,
+  "250922-engaging-videos":5,
+  "250927-correct-counting":5,
+  "082525-counting":5,
+  "251122-person-isolation-bbox":12,
+  "251101-website-generation":10,
+  "251122-group-person-removal":15,
+  "251112-image-translation":5,
+  "251121-asr-transcript-accuracy-v2":2,
+  "251119-add-perception-labels":10,
+  "250925-create-task":20,
+  "251101-artistic-style-reference":25,
+  "251127-image-color-picker":25,
+  "251125-count-verification":3
+};
+
+/* populate dropdown */
+const taskListEl=document.getElementById("taskList");
+Object.keys(TASK_AHT).forEach(t=>{
+  const o=document.createElement("option");
+  o.value=t;
+  taskListEl.appendChild(o);
+});
+
+/* auto-fill time */
+taskName.addEventListener("input",()=>{
+  if(TASK_AHT[taskName.value]) timeInput.value=TASK_AHT[taskName.value];
+});
+
 /* ===== SOUND ===== */
 function toggleSound(){
   soundOn=!soundOn;
@@ -236,82 +293,58 @@ function toggleSound(){
 function unlockAudio(){
   alarm.muted=true;
   alarm.play().then(()=>{
-    alarm.pause();
-    alarm.currentTime=0;
-    alarm.muted=false;
+    alarm.pause();alarm.currentTime=0;alarm.muted=false;
   }).catch(()=>{});
 }
 function startAlarm(){ if(soundOn){ alarm.currentTime=0; alarm.play(); } }
 function stopAlarm(){ alarm.pause(); alarm.currentTime=0; }
 
-/* ===== NOTIFICATION ===== */
-function requestNotificationPermission(){
-  if("Notification" in window && Notification.permission==="default"){
-    Notification.requestPermission();
-  }
-}
-function showDesktopNotification(task){
-  if("Notification" in window && Notification.permission==="granted"){
-    new Notification("⏰ Timer Completed",{ body:`Task "${task}" auto-submitted`, silent:true });
-  }
-}
-
-/* ===== UI ===== */
+/* ===== FORMATTERS ===== */
 function formatTime(sec){
-  const m=Math.floor(sec/60), s=sec%60;
+  const m=Math.floor(sec/60),s=sec%60;
   return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
 }
-function updateRing(rem){
-  const deg=(1-rem/durationSec)*360;
-  ring.style.background=`conic-gradient(#2563eb ${deg}deg,#111 ${deg}deg)`;
-}
-function showMessage(){
-  msg.classList.add("show");
-  setTimeout(()=>msg.classList.remove("show"),3000);
+function formatTotalTime(sec){
+  const h=Math.floor(sec/3600),
+        m=Math.floor((sec%3600)/60),
+        s=sec%60;
+  return h>0?`${h} hr ${m} min ${s} sec`:`${m} min ${s} sec`;
 }
 
 /* ===== TIMER ===== */
 function startTimer(){
   unlockAudio();
-  requestNotificationPermission();
   if(tickInterval) return;
-
-  const mins=Number(timeInput.value);
+  const mins=+timeInput.value;
   if(!mins||mins<=0) return;
-
   durationSec=mins*60;
   startTime=Date.now();
   endTime=startTime+durationSec*1000;
-
   tick();
   tickInterval=setInterval(tick,1000);
 }
-
 function tick(){
-  const remMs=endTime-Date.now();
-  if(remMs<=0){
-    clearInterval(tickInterval);
-    tickInterval=null;
+  const rem=endTime-Date.now();
+  if(rem<=0){
+    clearInterval(tickInterval);tickInterval=null;
     timer.innerText="00:00";
     updateRing(0);
     startAlarm();
     autoSubmit();
     return;
   }
-  const remSec=Math.ceil(remMs/1000);
-  timer.innerText=formatTime(remSec);
-  updateRing(remSec);
+  const sec=Math.ceil(rem/1000);
+  timer.innerText=formatTime(sec);
+  updateRing(sec);
 }
-
-function pauseTimer(){
-  clearInterval(tickInterval);
-  tickInterval=null;
-}
+function pauseTimer(){clearInterval(tickInterval);tickInterval=null;}
 function stopTimer(){
-  clearInterval(tickInterval);
-  tickInterval=null;
+  clearInterval(tickInterval);tickInterval=null;
   timer.innerText="00:00";
   ring.style.background="conic-gradient(#111 360deg,#111 0)";
+}
+function updateRing(rem){
+  ring.style.background=`conic-gradient(#2563eb ${(1-rem/durationSec)*360}deg,#111 0)`;
 }
 
 /* ===== TASKS ===== */
@@ -323,64 +356,47 @@ function ensureTask(t){
   taskLog.prepend(g);
   tasks[t]={count:0,countEl:g.children[1]};
 }
-
-function autoSubmit(){
-  const t=taskName.value||"Unnamed Task";
-  submitTask(true);
-  showMessage();
-  showDesktopNotification(t);
-  stopAlarm();
-}
-
+function autoSubmit(){ submitTask(true); showMessage(); stopAlarm(); }
 function submitTask(auto=false){
   const t=taskName.value||"Unnamed Task";
   ensureTask(t);
-
-  totalCount++;
-  tasks[t].count++;
-  tasks[t].countEl.innerText=`Total done: ${tasks[t].count}`;
+  totalCount++; tasks[t].count++;
   count.innerText=totalCount;
-
-  const spent=Math.round((Date.now()-startTime)/1000);
-  totalTimeSpent+=spent;
-  totalTime.innerText=formatTime(totalTimeSpent);
-
+  tasks[t].countEl.innerText=`Total done: ${tasks[t].count}`;
+  if(startTime){
+    totalTimeSpent+=Math.round((Date.now()-startTime)/1000);
+    totalTime.innerText=formatTotalTime(totalTimeSpent);
+  }
   if(!auto) stopTimer();
-}
-
-function submitTime(){
-  if(!startTime) return;
-  const spent=Math.round((Date.now()-startTime)/1000);
-  totalTimeSpent+=spent;
-  totalTime.innerText=formatTime(totalTimeSpent);
-  stopTimer();
   startTime=null;
 }
-
 function addManualTime(){
-  const mins=Number(manualTime.value);
+  const mins=+manualTime.value;
   if(!mins||mins<=0) return;
   totalTimeSpent+=mins*60;
-  totalTime.innerText=formatTime(totalTimeSpent);
+  totalTime.innerText=formatTotalTime(totalTimeSpent);
   manualTime.value="";
 }
-
 function undoTask(){
   const t=taskName.value||"Unnamed Task";
   if(!tasks[t]||tasks[t].count===0) return;
-  totalCount--;
-  tasks[t].count--;
-  tasks[t].countEl.innerText=`Total done: ${tasks[t].count}`;
+  totalCount--; tasks[t].count--;
   count.innerText=totalCount;
+  tasks[t].countEl.innerText=`Total done: ${tasks[t].count}`;
+}
+
+/* ===== UI ===== */
+function showMessage(){
+  msg.classList.add("show");
+  setTimeout(()=>msg.classList.remove("show"),3000);
 }
 
 /* ===== BACKUP ===== */
 function downloadLog(){
   let txt=`TOTAL_TASKS:${totalCount}\nTOTAL_TIME:${totalTimeSpent}\n`;
   Object.keys(tasks).forEach(t=>txt+=`${t}:${tasks[t].count}\n`);
-  const b=new Blob([txt],{type:"text/plain"});
   const a=document.createElement("a");
-  a.href=URL.createObjectURL(b);
+  a.href=URL.createObjectURL(new Blob([txt],{type:"text/plain"}));
   a.download="task_log_backup.txt";
   a.click();
 }
@@ -388,21 +404,18 @@ function loadLog(e){
   const f=e.target.files[0]; if(!f) return;
   const r=new FileReader();
   r.onload=()=>{
-    taskLog.innerHTML="";
-    Object.keys(tasks).forEach(k=>delete tasks[k]);
-    totalCount=0; totalTimeSpent=0;
+    taskLog.innerHTML=""; Object.keys(tasks).forEach(k=>delete tasks[k]);
     r.result.split("\n").forEach(l=>{
       if(!l.trim()) return;
       if(l.startsWith("TOTAL_TASKS")){
-        totalCount=Number(l.split(":")[1]);
-        count.innerText=totalCount;
+        totalCount=+l.split(":")[1]; count.innerText=totalCount;
       }else if(l.startsWith("TOTAL_TIME")){
-        totalTimeSpent=Number(l.split(":")[1]);
-        totalTime.innerText=formatTime(totalTimeSpent);
+        totalTimeSpent=+l.split(":")[1];
+        totalTime.innerText=formatTotalTime(totalTimeSpent);
       }else{
         const [t,c]=l.split(":");
         ensureTask(t);
-        tasks[t].count=Number(c);
+        tasks[t].count=+c;
         tasks[t].countEl.innerText=`Total done: ${c}`;
       }
     });
