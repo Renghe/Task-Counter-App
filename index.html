@@ -92,7 +92,6 @@ body{
   font-weight:800;
   text-align:center;
   line-height:1.3;
-  white-space:normal;
 }
 .stat-label{font-size:13px;color:var(--text-dim)}
 
@@ -197,7 +196,7 @@ button{
 
     <div class="button-row">
       <button class="start" onclick="startTimer()">Start</button>
-      <button class="pause" onclick="pauseTimer()">Pause</button>
+      <button class="pause" id="pauseBtn" onclick="togglePause()">⏸ Pause</button>
       <button class="stop" onclick="stopTimer()">Stop</button>
     </div>
 
@@ -232,6 +231,7 @@ let totalCount=0, totalTimeSpent=0;
 let startTime=null, endTime=null, durationSec=0;
 let tickInterval=null;
 let soundOn=true;
+let remainingSec=0;
 const alarm=document.getElementById("alarm");
 const tasks={};
 
@@ -269,26 +269,20 @@ const TASK_AHT={
   "251101-artistic-style-reference":25,
   "251127-image-color-picker":25,
   "251125-count-verification":3,
-  // Newly added missing tasks
-  "251002-tripod-survey": 1,
-  "251211-transparent-background-images": 4,
-  "251216-text-to-audio-h2h": 2,
-  "251205-freeform-conversations": 5,
-  "Auto-execute-1766207105019": 5,
-  "250925-tripod-photos": 5,
-  "250929-text-to-image-h2h": 5
-
+  "251002-tripod-survey":1,
+  "251211-transparent-background-images":4,
+  "251216-text-to-audio-h2h":2,
+  "251205-freeform-conversations":5,
+  "Auto-execute-1766207105019":5,
+  "250925-tripod-photos":5
 };
 
-/* populate dropdown */
-const taskListEl=document.getElementById("taskList");
 Object.keys(TASK_AHT).forEach(t=>{
   const o=document.createElement("option");
   o.value=t;
-  taskListEl.appendChild(o);
+  taskList.appendChild(o);
 });
 
-/* auto-fill time */
 taskName.addEventListener("input",()=>{
   if(TASK_AHT[taskName.value]) timeInput.value=TASK_AHT[taskName.value];
 });
@@ -324,36 +318,64 @@ function formatTotalTime(sec){
 function startTimer(){
   unlockAudio();
   if(tickInterval) return;
-  const mins=+timeInput.value;
-  if(!mins||mins<=0) return;
-  durationSec=mins*60;
+
+  if(remainingSec===0){
+    const mins=Number(timeInput.value);
+    if(!mins||mins<=0) return;
+    remainingSec=mins*60;
+    durationSec=remainingSec;
+  }
+
   startTime=Date.now();
-  endTime=startTime+durationSec*1000;
+  endTime=startTime+remainingSec*1000;
   tick();
   tickInterval=setInterval(tick,1000);
+  pauseBtn.innerText="⏸ Pause";
 }
+
+function togglePause(){
+  if(tickInterval){
+    clearInterval(tickInterval);
+    tickInterval=null;
+    pauseBtn.innerText="▶ Play";
+  }else if(remainingSec>0){
+    startTimer();
+    pauseBtn.innerText="⏸ Pause";
+  }
+}
+
 function tick(){
-  const rem=endTime-Date.now();
-  if(rem<=0){
-    clearInterval(tickInterval);tickInterval=null;
+  const remMs=endTime-Date.now();
+  if(remMs<=0){
+    clearInterval(tickInterval);
+    tickInterval=null;
+    remainingSec=0;
     timer.innerText="00:00";
     updateRing(0);
     startAlarm();
     autoSubmit();
+    pauseBtn.innerText="⏸ Pause";
     return;
   }
-  const sec=Math.ceil(rem/1000);
-  timer.innerText=formatTime(sec);
-  updateRing(sec);
+  remainingSec=Math.ceil(remMs/1000);
+  timer.innerText=formatTime(remainingSec);
+  updateRing(remainingSec);
 }
-function pauseTimer(){clearInterval(tickInterval);tickInterval=null;}
+
 function stopTimer(){
-  clearInterval(tickInterval);tickInterval=null;
+  clearInterval(tickInterval);
+  tickInterval=null;
+  remainingSec=0;
+  startTime=null;
   timer.innerText="00:00";
   ring.style.background="conic-gradient(#111 360deg,#111 0)";
+  pauseBtn.innerText="⏸ Pause";
 }
+
 function updateRing(rem){
-  ring.style.background=`conic-gradient(#2563eb ${(1-rem/durationSec)*360}deg,#111 0)`;
+  if(!durationSec) return;
+  ring.style.background=
+    `conic-gradient(#2563eb ${(1-rem/durationSec)*360}deg,#111 0)`;
 }
 
 /* ===== TASKS ===== */
@@ -366,6 +388,7 @@ function ensureTask(t){
   tasks[t]={count:0,countEl:g.children[1]};
 }
 function autoSubmit(){ submitTask(true); showMessage(); stopAlarm(); }
+
 function submitTask(auto=false){
   const t=taskName.value||"Unnamed Task";
   ensureTask(t);
@@ -378,14 +401,18 @@ function submitTask(auto=false){
   }
   if(!auto) stopTimer();
   startTime=null;
+  remainingSec=0;
+  pauseBtn.innerText="⏸ Pause";
 }
+
 function addManualTime(){
-  const mins=+manualTime.value;
+  const mins=Number(manualTime.value);
   if(!mins||mins<=0) return;
   totalTimeSpent+=mins*60;
   totalTime.innerText=formatTotalTime(totalTimeSpent);
   manualTime.value="";
 }
+
 function undoTask(){
   const t=taskName.value||"Unnamed Task";
   if(!tasks[t]||tasks[t].count===0) return;
@@ -413,11 +440,13 @@ function loadLog(e){
   const f=e.target.files[0]; if(!f) return;
   const r=new FileReader();
   r.onload=()=>{
-    taskLog.innerHTML=""; Object.keys(tasks).forEach(k=>delete tasks[k]);
+    taskLog.innerHTML="";
+    Object.keys(tasks).forEach(k=>delete tasks[k]);
     r.result.split("\n").forEach(l=>{
       if(!l.trim()) return;
       if(l.startsWith("TOTAL_TASKS")){
-        totalCount=+l.split(":")[1]; count.innerText=totalCount;
+        totalCount=+l.split(":")[1];
+        count.innerText=totalCount;
       }else if(l.startsWith("TOTAL_TIME")){
         totalTimeSpent=+l.split(":")[1];
         totalTime.innerText=formatTotalTime(totalTimeSpent);
@@ -435,4 +464,3 @@ function loadLog(e){
 
 </body>
 </html>
-
