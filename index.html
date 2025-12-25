@@ -314,6 +314,15 @@ function formatTotalTime(sec){
   return h>0?`${h} hr ${m} min ${s} sec`:`${m} min ${s} sec`;
 }
 
+/* ===== TAB TITLE ===== */
+function updateTabTitle(sec){
+  if(sec>0){
+    document.title=`${formatTime(sec)}⏳ – Focus Task Tracker`;
+  }else{
+    document.title="Focus Task Tracker v2.0";
+  }
+}
+
 /* ===== TIMER ===== */
 function startTimer(){
   unlockAudio();
@@ -338,6 +347,7 @@ function togglePause(){
     clearInterval(tickInterval);
     tickInterval=null;
     pauseBtn.innerText="▶ Play";
+    updateTabTitle(remainingSec);
   }else if(remainingSec>0){
     startTimer();
     pauseBtn.innerText="⏸ Pause";
@@ -352,6 +362,7 @@ function tick(){
     remainingSec=0;
     timer.innerText="00:00";
     updateRing(0);
+    updateTabTitle(0);
     startAlarm();
     autoSubmit();
     pauseBtn.innerText="⏸ Pause";
@@ -360,6 +371,7 @@ function tick(){
   remainingSec=Math.ceil(remMs/1000);
   timer.innerText=formatTime(remainingSec);
   updateRing(remainingSec);
+  updateTabTitle(remainingSec);
 }
 
 function stopTimer(){
@@ -370,6 +382,7 @@ function stopTimer(){
   timer.innerText="00:00";
   ring.style.background="conic-gradient(#111 360deg,#111 0)";
   pauseBtn.innerText="⏸ Pause";
+  updateTabTitle(0);
 }
 
 function updateRing(rem){
