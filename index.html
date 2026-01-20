@@ -237,7 +237,6 @@ const tasks={};
 
 /* ===== TASK AHT ===== */
 const TASK_AHT = {
-
   "251015-stationary-camera-transforms": 15,
   "251102-image-facts": 20,
   "251106-screenshot-code": 5,
@@ -246,127 +245,58 @@ const TASK_AHT = {
   "250911-character-consistency": 3,
   "251111-share-lm-chats": 5,
   "250915-asr-transcript-accuracy": 2,
-
-  "251030-audio-transcript-review": 7,            # UPDATED (8 → 7)
-
-  "250907-ui-images": 15,                         # UPDATED (10 → 15)
-  "250911-scene-expansion": 15,                   # UPDATED (3 → 15)
-  "250915-product-image-pairs": 4,                # UPDATED (5 → 4)
-
-  "251112-hard-grounding-samples": 6,              # UPDATED (7 → 6)
-
-  "251112-text-elo-h2h": 5,                        # UPDATED (15 → 5)
-
+  "251030-audio-transcript": 8,
+  "250907-ui-images": 10,
+  "250911-scene-expansion": 3,
+  "250915-product-image-pairs": 5,
+  "251112-hard-grounding-samples": 7,
+  "251112-text-elo-h2h": 15,
   "251110-gauge-annotation": 2,
   "251103-qr-code-extraction": 2,
-
-  "251014-ig-entity-tagging-videos": 20,           # UPDATED (10 → 20)
-
-  "251119-scripted-call-av-solo-client": 6,        # UPDATED (5.5 → 6)
-
+  "251014-ig-entity-tagging-videos": 10,
+  "251119-scripted-call-av-solo-client": 5.5,          // updated
   "251121-aspect-ratio-cropping": 5,
+  "250922-engaging-videos": 5,
+  "250927-correct-counting": 5,
+  "082525-counting": 5,
 
-  "250922-engaging-videos": 3,                     # UPDATED (5 → 3)
-  "250927-correct-counting": 4,                    # UPDATED (5 → 4)
-  "082525-counting": 3,                            # UPDATED (5 → 3)
-
-  "251122-person-isolation-bbox": 10,              # UPDATED (12 → 10)
-
-  "251101-website-generation": 20,                 # UPDATED (10 → 20)
-
-  "251122-group-person-removal": 18,               # UPDATED (15 → 18)
-
-  "251112-image-translation": 4,                   # UPDATED (5 → 4)
-
-  "251121-asr-transcript-accuracy-v2": 3,           # UPDATED (2 → 3)
-
-  "251113-hard-point-grounding-samples": 7,        # NEW TASK
-
-  "250909-text-to-video-h2h": 4,                   # UPDATED (12 → 4)
-
-  "251125-count-verification": 3,
-
-  "251119-add-perception-labels": 8,                # UPDATED (10 → 8)
-
+  "251122-person-isolation-bbox": 12,
+  "251101-website-generation": 10,
+  "251122-group-person-removal": 15,
+  "251112-image-translation": 5,
+  "251121-asr-transcript-accuracy-v2": 2,
+  "251119-add-perception-labels": 10,
   "250925-create-task": 20,
-
-  "251101-artistic-style-reference": 15,            # UPDATED (25 → 15)
-
-  "251127-image-color-picker": 20,                  # UPDATED (25 → 20)
-
-  "251205-ig-reels-explainer-labeling": 3,          # NEW TASK
-
-  "251205-freeform-conversations": 10,
-
-  "251208-video-character-consistency": 4,          # NEW TASK
-
-  "251209-text-models-h2h": 10,                     # NEW TASK
-
-  "250929-text-to-image-h2h": 4,                   # UPDATED (5 → 4)
-
-  "251211-video-scene-expansion": 4,                # UPDATED (5 → 4)
-
-  "251211-transparent-background-images": 4,       # UPDATED (5 → 4)
-
-  "251212-product-video-pairs": 8,                  # UPDATED (10 → 8)
-
-  "251210-bbox-grounding-natural": 18,              # UPDATED (20 → 18)
-
-  "251210-bbox-grounding-structured": 18,           # NEW TASK
-
-  "251210-bbox-grounding-computer-use": 18,         # UPDATED (20 → 18)
-
-  "251210-conversations-to-response-h2h": 6,        # UPDATED (7 → 6)
-
-  "251216-text-to-audio-h2h": 2,
-
-  "251016-vision-vlm-h2h": 23,                      # UPDATED (25 → 23)
-
+  "251101-artistic-style-reference": 25,
+  "251127-image-color-picker": 25,
+  "251125-count-verification": 3,
   "251002-tripod-survey": 1,
+  "251211-transparent-background-images": 5,          // updated
+  "251216-text-to-audio-h2h": 2,
+  "251205-freeform-conversations": 10,                 // updated
+  "Auto-execute-1766207105019": 5,
+  "250925-tripod-photos": 20,                          // updated
 
-  "250925-tripod-photos": 20,
-
-  "251209-text-to-audio-video-h2h": 5,              # NEW TASK
-
-  "251216-pattern-extraction": 18,                  # UPDATED (20 → 18)
-
-  "251216-video-artistic-style-reference": 10,
-
-  "251217-video-named-entities": 38,                # UPDATED (45 → 38)
-
-  "082025-video-quality-compare": 5,
-
-  "251215-interior-design-images": 3,
-
-  "251215-furniture-removal": 23,                   # UPDATED (25 → 23)
-
+  // Newly added from sheet
+  "251211-video-scene-expansion": 5,
+  "250909-text-to-video-h2h": 12,
+  "251212-product-video-pairs": 10,
+  "251210-bbox-grounding-natural": 20,
+  "251210-conversations-to-response-h2h": 7,
+  "250929-text-to-image-h2h": 5,
+  "251210-bbox-grounding-computer-use": 20,
+  "251216-pattern-extraction": 20,
+  "251217-video-named-entities": 45,
+  "080225-video-quality-compare": 5,
+  "251216-video-artistic-style-reference": 20,
+  "251215-furniture-removal": 25,
   "080825-audio-quality-compare": 5,
-
   "251231-object-relationship": 10,
-
-  "260107-find-challenging-images": 13,
-
-  "081925-image-quality-compare": 2,
-
-  "251205-ig-reels-explainer-labeling-v2": 3,        # NEW TASK
-
-  "260107-video-color-picker": 23,                  # NEW TASK
-
-  "260105-stylistic-image-sourcing": 7,             # NEW TASK
-
-  "260105-sketch-to-photorealistic": 13,             # NEW TASK
-
-  "251112-inpaint-video-add-object": 23,            # NEW TASK
-
-  "260108-high-res-computer-use-dense-bbox": 8,     # NEW TASK
-
-  "260113-tts-h2h": 5,                              # NEW TASK
-
-  "260107-solve-challenging-images": 38,            # NEW TASK
-
-  "0121312-sam2-exhaustive-phrase-tracking": 6       # NEW TASK
+  "251016-vision-vlm-h2h": 25,
+  "260107-find-challenging-images": 15,
+  "251215-interior-design-images": 3,
+  "081925-image-quality-compare": 2
 };
-
 
 Object.keys(TASK_AHT).forEach(t=>{
   const o=document.createElement("option");
@@ -568,6 +498,3 @@ function loadLog(e){
 
 </body>
 </html>
-
-
-
