@@ -75,7 +75,13 @@ body{
 }
 
 /* STATS */
-.stats{display:flex;gap:20px}
+.stats{
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap:20px;
+  width:100%;
+}
+
 .stat{
   width:180px;
   height:140px;
@@ -161,8 +167,40 @@ button{
   padding-top:16px;
   border-top:1px solid #333;
 }
+
+/* --- FIX LAYOUT CHAOS --- */
+
+/* inputs should stack vertically */
+.card input{
+  width:100%;
+}
+
+/* button rows should not stretch */
+.button-row{
+  display:flex;
+  gap:12px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+
+/* buttons should stay compact */
+.button-row button{
+  width:auto;
+  min-width:110px;
+  height:auto;
+}
+
+/* keep timer centered */
+.timer-wrap{
+  margin:20px auto;
+}
+
 </style>
 </head>
+
+<body>
+
+<body>
 
 <body>
 
@@ -172,28 +210,48 @@ button{
 <div class="left">
   <div class="card">
 
+    <!-- STATS ROW -->
     <div class="stats">
+
       <div class="stat">
         <div class="stat-value" id="count">0</div>
+        <div style="font-size:13px;color:#60a5fa;margin-top:6px">
+          🎯 Target: <span id="targetCountDisplay">Not set</span>
+        </div>
         <div class="stat-label">Total Tasks</div>
       </div>
+
       <div class="stat">
         <div class="stat-value" id="totalTime">0 min 0 sec</div>
         <div class="stat-label">Total Time</div>
       </div>
+
+      <div class="stat">
+        <div class="stat-value" id="targetOnlyDisplay">—</div>
+        <div class="stat-label">Target</div>
+      </div>
+
     </div>
 
+    <!-- TIMER -->
     <div class="timer-wrap">
       <div class="timer-ring" id="ring">
         <div class="timer-inner" id="timer">00:00</div>
       </div>
     </div>
 
+    <!-- INPUTS -->
     <input id="taskName" list="taskList" placeholder="Task name">
     <datalist id="taskList"></datalist>
 
     <input id="timeInput" type="number" placeholder="Time in minutes">
 
+    <div class="button-row">
+      <input id="targetCountInput" type="number" placeholder="Target count" style="max-width:160px">
+      <button class="backup" onclick="setTargetCount()">🎯 Set Target</button>
+    </div>
+
+    <!-- CONTROLS -->
     <div class="button-row">
       <button class="start" onclick="startTimer()">Start</button>
       <button class="pause" id="pauseBtn" onclick="togglePause()">⏸ Pause</button>
@@ -213,6 +271,7 @@ button{
   </div>
 </div>
 
+
 <div class="right">
   <h3>Task Log</h3>
   <div id="taskLog"></div>
@@ -228,6 +287,8 @@ button{
 <script>
 /* ===== STATE ===== */
 let totalCount=0, totalTimeSpent=0;
+let targetCount = 0;
+
 let startTime=null, endTime=null, durationSec=0;
 let tickInterval=null;
 let soundOn=true;
@@ -428,6 +489,10 @@ function submitTask(auto=false){
   ensureTask(t);
   totalCount++; tasks[t].count++;
   count.innerText=totalCount;
+  if(targetCount > 0){
+  targetCountDisplay.innerText = `${totalCount} / ${targetCount}`;
+}
+
   tasks[t].countEl.innerText=`Total done: ${tasks[t].count}`;
   if(startTime){
     totalTimeSpent+=Math.round((Date.now()-startTime)/1000);
@@ -494,6 +559,19 @@ function loadLog(e){
   };
   r.readAsText(f);
 }
+
+function setTargetCount(){
+  const val = Number(targetCountInput.value);
+  if(!val || val <= 0) return;
+
+  targetCount = val;
+
+  // update both displays
+  targetCountDisplay.innerText = `${totalCount} / ${val}`;
+  targetOnlyDisplay.innerText = val;
+}
+
+
 </script>
 
 </body>
